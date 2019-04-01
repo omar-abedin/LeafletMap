@@ -1,35 +1,23 @@
-Data Desciption
-Data sets related to the 50 states of the United States of America.
+geodata <- read.csv(file = "500CitiesCancer.csv",
+                    header = TRUE, 
+                    sep = "," )
 
-Population:
+data <- subset(geodata, select = c("cityName", "data_Value_cancer","cityFIPS_rough","populationCountTotal","state","precetnagePopulationCancer","geoLocationLat", "geoLocationLng"))
 
-population estimate as of July 1, 1975
-Income:
+colnames(data) <- c("cityName", "data_Value_cancer","cityFIPS_rough","populationCountTotal","state","precetnagePopulationCancer","geoLocationLat", "geoLocationLng")
 
-per capita income (1974)
-Description
-Color Depth
+data$popsep <- format(data$populationCountTotal, scientific=FALSE)
+data$metropop <- do.call(paste, c(data[c("cityName", "populationCountTotal","precetnagePopulationCancer")], sep = ", "))
 
-Income per capita of State
-Size of Circle
+my_map <- data %>%
+        leaflet() %>%
+        addTiles() %>%
+        setView(lng = -95.7129, lat = 37.0902, zoom = 4) %>%
 
-Population of State
-library(leaflet)
-## Warning: package 'leaflet' was built under R version 3.3.2
-library(htmltools)
-## Warning: package 'htmltools' was built under R version 3.3.2
-data(state)
+        addMarkers(clusterOptions = markerClusterOptions(), 
+                   popup = strwrap(data$metropop), 
+                   lng = (data$geoLocationLng), 
+                   lat = (data$geoLocationLat))%>% 
+        addTiles()
 
-state.info <- data.frame(state.x77)
-state.info$State.Name = rownames(state.info)
-state.info$lng = state.center$x
-state.info$lat = state.center$y
-
-pal <- colorNumeric(
-  palette = "Blues",
-  domain = state.info$Income
-)
-
-#df <- data.frame( lng = state.center$x , lat = state.center$y, name = state.name, pop = state.x77)
-m <- state.info %>% leaflet() %>%  addTiles() %>%   addCircleMarkers(lng = ~lng, lat = ~lat, popup = ~State.Name, clusterOptions = markerClusterOptions(), radius = ~((Population/sum(state.info$Population))*1000), color =~pal(Income))
-m
+my_map
